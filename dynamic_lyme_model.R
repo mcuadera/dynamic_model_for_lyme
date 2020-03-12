@@ -1,6 +1,7 @@
-#BIOEE7600 Semester Project
 #Modeling interactions of host abundance and nymphal density
-#Mervin Keith Cuadera
+#Based on the paper: 'Deer, predators, and the emergence of Lyme disease' by Levi et al.
+#Dynamic model interpretation in R by Mervin Keith Cuadera
+#03/12/2020
 
 rm(list=ls(all=TRUE))
 library(deSolve)
@@ -11,7 +12,7 @@ library(deSolve)
 #r is maximum intrinsic growth rate
 #K is carrying capacity (individuals)
 #aP is maximum predation rate (kills per km^2)  
-#c is half saturation parameter (this is just have of aP because this is the same as max_rate/2)
+#c is half saturation parameter (this is just half of aP because this is the same as max_rate/2)
 #T_mt is probability of being biten by an infected nymph
 #F_alt fraction of ticks biting alternative hosts, but also increase total host abundance (individuals)
 #beta is the tick bite rate; (originally written as beta(Nm+F))
@@ -33,7 +34,7 @@ library(deSolve)
 #J_t is the uninfected nymphs
 
 host_vector_model <- function(t,y,parms) {
-  #definte state variables
+  #define state variables
   N_m <- y[1]
   S_m <- y[2]
   I_m <- y[3]
@@ -76,7 +77,7 @@ host_vector_model <- function(t,y,parms) {
   dN[6] = ((S_m+F_alt+I_m*(1-T_tm))/(b0+N_m+F_alt))*S_t-((N_m+F_alt)/(b0+N_m+F_alt)*J_t)-mu_N*J_t #J_t
   
   jbad = which(  (dN<0)&(y<=0) );
-  dN[jbad]=0;
+  dN[jbad]=0; #this removes biologically impossible situations like negative population.
   
   return(list(dN))
 }
@@ -90,13 +91,13 @@ infected_nymphs_1_5 <- rep(0,1000) #using v = 1.5 million
 infected_nymphs_1 <- rep(0,1000) #using v = 1 million
 infected_nymphs_500 <- rep(0,1000) #using v = 500 million
 
-#generating aP values
+#generating aP values (max predation rate)
 aP_val <- rep(0,1000); aP_val[1] = aP_0;
 for (i in 2:1000){
   aP_val[i] <- 10 + aP_val[i-1]
 }
 
-#this is with v = 1.5 million
+#this is with v = 1.5 million (tick birth rate)
 for (i in 2:1000) {
   v <- 1500000
   aP <- aP_val[i-1];
@@ -133,7 +134,7 @@ legend("topright", legend = c("v = 1.5 million",
                              "v = 1 million",
                              "v = 0.5 million"), lty = c(3,1,2), cex = 0.7)
 
-#This is the code used inside the loops. Used for checking results.
+#This is the code used inside the loops. Use for checking results.
   #aP <- 1000
   #parms <- c(r,K,aP,c,T_mt,F_alt,beta,b0,v,mu_L,mu_N,T_tm)  
   #out<-ode(y=c(1,1,1,1,1,1), times= seq(0,200,by=.1), func=host_vector_model, parms)
